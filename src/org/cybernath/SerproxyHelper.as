@@ -17,6 +17,7 @@ package org.cybernath
 	{
 		private var np:NativeProcess;
 		private var pathToSerp:String;
+		
 		public function SerproxyHelper(pathToSerproxy:String = 'serproxy/serproxy')
 		{
 			super();
@@ -27,15 +28,21 @@ package org.cybernath
 		public function connect():Array
 		{
 			// Keeps track of the ArduinoSockets and by extension, the ports associated with each.
+			var coms:Array = getComPorts();
 			var sockets:Array = [];
+			
+			if(coms.length == 0){
+				throw(new Error("No Arduinos Found"));
+				return [];
+			}
 			
 			// Copy over SERPROXY file.
 			var sFile:File = File.applicationDirectory.resolvePath(pathToSerp);
-			var copiedSerp:File = File.applicationStorageDirectory.resolvePath('serproxy');
+			var copiedSerp:File = File.documentsDirectory.resolvePath('serproxy');
 			sFile.copyTo(copiedSerp,true);
 
 			// Build the config file.
-			var serproxyConfig:File = File.applicationStorageDirectory.resolvePath('serproxy.cfg');
+			var serproxyConfig:File = File.documentsDirectory.resolvePath('serproxy.cfg');
 			
 			var cfg:String = 
 				'newlines_to_nils=false\n' + 
@@ -45,7 +52,6 @@ package org.cybernath
 				'comm_parity=none\n' +
 				'timeout=300\n';
 
-			var coms:Array = getComPorts();
 			trace(coms);
 			cfg += "comm_ports=";
 			for(var j:uint = 0; j < coms.length; j++){
@@ -78,7 +84,7 @@ package org.cybernath
 			np.addEventListener(IOErrorEvent.STANDARD_ERROR_IO_ERROR, onIOError);
 			np.start(npInfo);
 			NativeApplication.nativeApplication.addEventListener(Event.EXITING,onExiting);
-			
+			//copiedSerp.openWithDefaultApplication();
 			return sockets;
 		}
 		
@@ -106,8 +112,9 @@ package org.cybernath
 				searchRegex = /\/dev\/(tty|cu)\./;
 				//otherwise we should just return the arduino ports or all ports
 			else
-				//so store the arduino port regex, which matches any port that starts with tty.usb
-				searchRegex = /\/dev\/cu\.usb/;
+				// so store the arduino port regex, which matches any port that starts with tty.usb
+				// Added Adafruit Bluetooth compatibility
+				searchRegex = /\/dev\/cu\.(usb|AdafruitEZ-Link)/;
 			
 			//get all the ports
 			allDevDevices = devDirectory.getDirectoryListing();
