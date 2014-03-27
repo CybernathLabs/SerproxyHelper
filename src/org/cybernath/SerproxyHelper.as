@@ -32,6 +32,11 @@ package org.cybernath
 			var sockets:Array = [];
 			
 			if(coms.length == 0){
+				// If we don't have any USB Arduinos, let's try Bluetooths.
+				coms = getComPorts(true);
+			}
+			
+			if(coms.length == 0){
 				throw(new Error("No Arduinos Found"));
 				return [];
 			}
@@ -50,7 +55,7 @@ package org.cybernath
 				'comm_databits=8\n' +
 				'comm_stopbits=1\n' +
 				'comm_parity=none\n' +
-				'timeout=300\n';
+				'timeout=3600\n';
 
 			trace(coms);
 			cfg += "comm_ports=";
@@ -98,7 +103,7 @@ package org.cybernath
 			}
 		}
 		
-		private function getComPorts(includeAllSerial:Boolean = false, includeAll:Boolean = false):Array
+		private function getComPorts(includeAdafruit:Boolean = false):Array
 		{
 			// This returns the currently available Arduinos.
 			var validComPorts:Array = new Array();
@@ -107,14 +112,15 @@ package org.cybernath
 			var devDirectory:File = new File("/dev/");
 			var searchRegex:RegExp;
 			//if all serial ports allowed
-			if(includeAllSerial)
+			if(includeAdafruit)
 				//get any ports that start with tty. or cu.
-				searchRegex = /\/dev\/(tty|cu)\./;
+//				searchRegex = /\/dev\/(tty|cu)\./;
+				searchRegex = /\/dev\/cu\.AdafruitEZ-Link/;
 				//otherwise we should just return the arduino ports or all ports
 			else
 				// so store the arduino port regex, which matches any port that starts with tty.usb
 				// Added Adafruit Bluetooth compatibility
-				searchRegex = /\/dev\/cu\.(usb|AdafruitEZ-Link)/;
+				searchRegex = /\/dev\/cu\.usb/;
 			
 			//get all the ports
 			allDevDevices = devDirectory.getDirectoryListing();
@@ -123,7 +129,7 @@ package org.cybernath
 			for each (var i:File in allDevDevices) 
 			{
 				//if we should include all ports or if the native path has a match for our regex
-				if (includeAll || i.nativePath.match(searchRegex))
+				if (i.nativePath.match(searchRegex))
 				{
 					//save this port reference
 					validComPorts.push(i.nativePath);
