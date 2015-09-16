@@ -154,11 +154,13 @@ package org.cybernath
 			return cfg;
 		}
 		
-		private function onExiting(evt:Event):void
+		public function onExiting(evt:Event):void
 		{
 			if(np.running){
-				evt.preventDefault();
-				evt.stopPropagation();
+				if(evt){
+					evt.preventDefault();
+					evt.stopPropagation();
+				}
 				trace("Quitting Serproxy");
 				np.exit();
 				shuttingDown = true;
